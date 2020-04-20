@@ -316,6 +316,8 @@ func TestEqualsString(t *testing.T) {
 		{"zyx", "zyx", true},
 		{"abcd", "zyx", false},
 		{"abcd", "abce", false},
+		{"abcdefghijklmnop", "abcd efghi jklmnop ", false},
+		{"abcdefghijklmnop", "a b c d e f g h i j k l m n o p", false},
 	}
 
 	for _, currCase := range testCases {
