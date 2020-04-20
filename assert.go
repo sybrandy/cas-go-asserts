@@ -2,9 +2,10 @@ package assert
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
-	"gopkg.in/d4l3k/messagediff.v1"
+	"github.com/andreyvit/diff"
 )
 
 type Assert struct {
@@ -12,8 +13,16 @@ type Assert struct {
 	reportErrors bool
 }
 
-func (a Assert) logError(expected, actual interface{}, diff string) {
-	msg := fmt.Sprintf("Expected: %+v, Actual: %+v, Diff: %s", expected, actual, diff)
+func (a Assert) logError(expected, actual interface{}) {
+	var msg string
+	if reflect.TypeOf(expected).String() == "string" {
+		a, _ := expected.(string)
+		b, _ := actual.(string)
+		msg = fmt.Sprintf("Expected: %+v, Actual: %+v, Diff: %s",
+			expected, actual, diff.CharacterDiff(a, b))
+	} else {
+		msg = fmt.Sprintf("Expected: %+v, Actual: %+v", expected, actual)
+	}
 	if a.reportErrors {
 		a.t.Error(msg)
 	} else {
@@ -22,8 +31,8 @@ func (a Assert) logError(expected, actual interface{}, diff string) {
 }
 
 func (a Assert) Equals(expected, actual interface{}) bool {
-	if diff, equal := messagediff.PrettyDiff(expected, actual); !equal {
-		a.logError(expected, actual, diff)
+	if expected != actual {
+		a.logError(expected, actual)
 		return false
 	}
 	return true
