@@ -3,19 +3,28 @@ package assert
 import (
 	"fmt"
 	"testing"
+
+	"gopkg.in/d4l3k/messagediff.v1"
 )
 
 type Assert struct {
-	t *testing.T
+	t            *testing.T
+	reportErrors bool
 }
 
-func (a Assert) genError(expected, actual interface{}) error {
-	return fmt.Errorf("Expected: %+v, Actual: %+v", expected, actual)
-}
-
-func (a Assert) EqualsInt(expected, actual int) error {
-	if expected == actual {
-		return nil
+func (a Assert) logError(expected, actual interface{}, diff string) {
+	msg := fmt.Sprintf("Expected: %+v, Actual: %+v, Diff: %s", expected, actual, diff)
+	if a.reportErrors {
+		a.t.Error(msg)
+	} else {
+		a.t.Log(msg)
 	}
-	return a.genError(expected, actual)
+}
+
+func (a Assert) EqualsInt(expected, actual int) bool {
+	if diff, equal := messagediff.PrettyDiff(expected, actual); !equal {
+		a.logError(expected, actual, diff)
+		return false
+	}
+	return true
 }

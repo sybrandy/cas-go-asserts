@@ -6,4 +6,4 @@ format:
 	gofmt -w -s *.go
 
 tests: format
-	go test -timeout 10s -race .
+	go test -test.v -timeout 10s -race .
