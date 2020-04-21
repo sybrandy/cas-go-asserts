@@ -13,6 +13,7 @@ func TestEquals(t *testing.T) {
 		success  bool
 	}{
 		{int(1), int(1), true},
+		{nil, nil, true},
 		{"foo", "foo", true},
 		{int(1), "foo", false},
 		{int8(1), int(1), false},

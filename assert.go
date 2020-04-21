@@ -79,6 +79,8 @@ func (a Assert) Equals(expected, actual interface{}) bool {
 	if (expected == nil || actual == nil) && expected != actual {
 		a.logError(expected, actual)
 		return false
+	} else if expected == nil && actual == nil {
+		return true
 	}
 
 	expectedType := reflect.TypeOf(expected)
