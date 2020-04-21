@@ -72,7 +72,34 @@ const (
 )
 */
 func (a Assert) isSupported(varKind reflect.Kind) bool {
-	return varKind != reflect.Invalid && (varKind <= reflect.Complex128 || varKind == reflect.String)
+	return varKind != reflect.Invalid && (varKind <= reflect.Complex128 ||
+		varKind == reflect.String || a.isArray(varKind))
+}
+
+func (a Assert) isArray(varKind reflect.Kind) bool {
+	return varKind == reflect.Array || varKind == reflect.Slice
+}
+
+func (a Assert) checkArray(expected, actual interface{}) bool {
+	exp := reflect.ValueOf(expected)
+	act := reflect.ValueOf(actual)
+
+	if exp.Len() != act.Len() {
+		msg := fmt.Sprintf("Expected and acutal arrays are of a different length: %d vs. %d", exp.Len(), act.Len())
+		if a.level == 0 {
+			a.t.Error(msg)
+		} else if a.level == 1 {
+			a.t.Log(msg)
+		}
+		return false
+	}
+
+	for i := 0; i < exp.Len(); i++ {
+		if !a.Equals(exp.Index(i).Interface(), act.Index(i).Interface()) {
+			return false
+		}
+	}
+	return true
 }
 
 func (a Assert) Equals(expected, actual interface{}) bool {
@@ -85,6 +112,7 @@ func (a Assert) Equals(expected, actual interface{}) bool {
 
 	expectedType := reflect.TypeOf(expected)
 	actualType := reflect.TypeOf(actual)
+
 	if !a.isSupported(expectedType.Kind()) || !a.isSupported(actualType.Kind()) {
 		msg := fmt.Sprintf("Unsupported type in comparison: %s, %s", expectedType.Kind(), actualType.Kind())
 		if a.level == 0 {
@@ -100,7 +128,9 @@ func (a Assert) Equals(expected, actual interface{}) bool {
 		return false
 	}
 
-	if expected != actual {
+	if a.isArray(expectedType.Kind()) && a.isArray(actualType.Kind()) {
+		return a.checkArray(expected, actual)
+	} else if expected != actual {
 		a.logError(expected, actual)
 		return false
 	}
@@ -118,34 +148,3 @@ func (a Assert) HasError(expected string, actual error) bool {
 	}
 	return a.Equals(expected, actual.Error())
 }
-
-/*
-func (a Assert) EqualsArray(expected, actual, comparitor interface{}) bool {
-	a.t.Logf("Comparison function: %s\n", reflect.TypeOf(comparitor))
-	exp := reflect.ValueOf(expected)
-	act := reflect.ValueOf(actual)
-
-	if exp.Len() != act.Len() {
-		msg := fmt.Sprintf("Expected and acutal arrays are of a different length: %d vs. %d", exp.Len(), act.Len())
-		if a.reportErrors {
-			a.t.Error(msg)
-		} else {
-			a.t.Log(msg)
-		}
-		return false
-	}
-
-	// think about this more...should be easier...
-	switch cmp := comparitor.(type) {
-	case func(string, string) bool {
-		expVals := expected.([]string)
-		actVals := actual.([]string)
-		for i, v := range expVals {
-			a.EqualsString(v, actVals[i])
-		}
-	}
-	}
-
-	return true
-}
-*/

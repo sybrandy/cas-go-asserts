@@ -27,9 +27,12 @@ func TestEquals(t *testing.T) {
 		{complex64(2), complex64(2), true},
 		{complex128(2), complex128(2), true},
 		{complex128(2), complex64(2), false},
+		{[]string{"abc", "def", "ghi"}, []string{"abc", "def", "ghi"}, true},
 		{[]string{"abc", "def", "ghi"}, []string{"abc", "ghi"}, false},
 		{"foo", []string{"abc", "ghi"}, false},
 		{[]string{"abc", "def", "ghi"}, complex64(123), false},
+		{[]string{"abc", "def", "ghi"}, []string{}, false},
+		{[]string{}, []string{"abc", "def", "ghi"}, false},
 	}
 
 	for _, currCase := range testCases {
@@ -103,27 +106,3 @@ func TestHasError(t *testing.T) {
 		}
 	}
 }
-
-/*
-func TestEqualsArray(t *testing.T) {
-	assert := Assert{t: t, level: 2}
-
-	testCases := []struct {
-		expected   interface{}
-		actual     interface{}
-		comparitor interface{}
-		success    bool
-	}{
-		{[]string{"abc", "def", "ghi"}, []string{"abc", "def", "ghi"}, assert.EqualsString, true},
-		{[]string{"abc", "def", "ghi"}, []string{}, assert.EqualsString, false},
-		{[]string{}, []string{"abc", "def", "ghi"}, assert.EqualsString, false},
-		{[]string{"abc", "def", "ghi"}, []string{"abc", "ghi"}, assert.EqualsString, false},
-	}
-
-	for _, currCase := range testCases {
-		if currCase.success != assert.EqualsArray(currCase.expected, currCase.actual, currCase.comparitor) {
-			t.Errorf("Assertion failed.")
-		}
-	}
-}
-*/
