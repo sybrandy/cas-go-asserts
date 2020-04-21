@@ -107,6 +107,18 @@ func (a Assert) Equals(expected, actual interface{}) bool {
 	return true
 }
 
+func (a Assert) IsNil(actual interface{}) bool {
+	return a.Equals(nil, actual)
+}
+
+func (a Assert) HasError(expected string, actual error) bool {
+	if actual == nil {
+		a.logError(expected, actual)
+		return false
+	}
+	return a.Equals(expected, actual.Error())
+}
+
 /*
 func (a Assert) EqualsArray(expected, actual, comparitor interface{}) bool {
 	a.t.Logf("Comparison function: %s\n", reflect.TypeOf(comparitor))

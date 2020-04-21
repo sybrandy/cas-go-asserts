@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -33,7 +34,7 @@ func TestEquals(t *testing.T) {
 
 	for _, currCase := range testCases {
 		if currCase.success != assert.Equals(currCase.expected, currCase.actual) {
-			t.Errorf("Assertion failed.")
+			t.Errorf("Assertion failed for: %v, %v", currCase.expected, currCase.actual)
 		}
 	}
 }
@@ -57,7 +58,48 @@ func TestEqualsStringDiff(t *testing.T) {
 
 	for _, currCase := range testCases {
 		if currCase.success != assert.Equals(currCase.expected, currCase.actual) {
-			t.Errorf("Assertion failed.")
+			t.Errorf("Assertion failed for: %v, %v", currCase.expected, currCase.actual)
+		}
+	}
+}
+
+func TestIsNil(t *testing.T) {
+	assert := Assert{t: t, level: 2}
+
+	testCases := []struct {
+		actual  interface{}
+		success bool
+	}{
+		{nil, true},
+		{"abcd", false},
+		{1, false},
+		{fmt.Errorf("foo"), false},
+	}
+
+	for _, currCase := range testCases {
+		if currCase.success != assert.IsNil(currCase.actual) {
+			t.Errorf("Assertion failed for: %v", currCase.actual)
+		}
+	}
+}
+
+func TestHasError(t *testing.T) {
+	assert := Assert{t: t, level: 2}
+
+	testCases := []struct {
+		expected string
+		actual   error
+		success  bool
+	}{
+		{"", nil, false},
+		{"abcd", fmt.Errorf("abcd"), true},
+		{"abcd", nil, false},
+		{"bar", fmt.Errorf("foo"), false},
+	}
+
+	for _, currCase := range testCases {
+		if currCase.success != assert.HasError(currCase.expected, currCase.actual) {
+			t.Errorf("Assertion failed for: %v, %v", currCase.expected, currCase.actual)
 		}
 	}
 }
