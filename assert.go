@@ -15,13 +15,22 @@ type Assert struct {
 
 func (a Assert) logError(expected, actual interface{}) {
 	var msg string
-	if reflect.TypeOf(expected).String() == "string" {
+	expectedType := "nil"
+	actualType := "nil"
+	if expected != nil {
+		expectedType = reflect.TypeOf(expected).String()
+	}
+	if actual != nil {
+		actualType = reflect.TypeOf(actual).String()
+	}
+	if expectedType == "string" && actualType == "string" {
 		a, _ := expected.(string)
 		b, _ := actual.(string)
 		msg = fmt.Sprintf("Expected: %+v, Actual: %+v, Diff: %s",
 			expected, actual, diff.CharacterDiff(a, b))
 	} else {
-		msg = fmt.Sprintf("Expected: %+v, Actual: %+v", expected, actual)
+		msg = fmt.Sprintf("Expected: %+v (%s), Actual: %+v (%s)",
+			expected, expectedType, actual, actualType)
 	}
 	if a.reportErrors {
 		a.t.Error(msg)
@@ -30,7 +39,65 @@ func (a Assert) logError(expected, actual interface{}) {
 	}
 }
 
+/*
+reflect.Kind Constants
+const (
+    Invalid Kind = iota
+    Bool
+    Int
+    Int8
+    Int16
+    Int32
+    Int64
+    Uint
+    Uint8
+    Uint16
+    Uint32
+    Uint64
+    Uintptr
+    Float32
+    Float64
+    Complex64
+    Complex128
+    Array
+    Chan
+    Func
+    Interface
+    Map
+    Ptr
+    Slice
+    String
+    Struct
+    UnsafePointer
+)
+*/
+func (a Assert) isSupported(varKind reflect.Kind) bool {
+	return varKind != reflect.Invalid && (varKind <= reflect.Complex128 || varKind == reflect.String)
+}
+
 func (a Assert) Equals(expected, actual interface{}) bool {
+	if (expected == nil || actual == nil) && expected != actual {
+		a.logError(expected, actual)
+		return false
+	}
+
+	expectedType := reflect.TypeOf(expected)
+	actualType := reflect.TypeOf(actual)
+	if !a.isSupported(expectedType.Kind()) || !a.isSupported(actualType.Kind()) {
+		msg := fmt.Sprintf("Unsupported type in comparison: %s, %s", expectedType.Kind(), actualType.Kind())
+		if a.reportErrors {
+			a.t.Error(msg)
+		} else {
+			a.t.Log(msg)
+		}
+		return false
+	}
+
+	if expectedType != actualType {
+		a.logError(expected, actual)
+		return false
+	}
+
 	if expected != actual {
 		a.logError(expected, actual)
 		return false
@@ -38,66 +105,33 @@ func (a Assert) Equals(expected, actual interface{}) bool {
 	return true
 }
 
-func (a Assert) EqualsByte(expected, actual byte) bool {
-	return a.EqualsUInt8(expected, actual)
-}
+/*
+func (a Assert) EqualsArray(expected, actual, comparitor interface{}) bool {
+	a.t.Logf("Comparison function: %s\n", reflect.TypeOf(comparitor))
+	exp := reflect.ValueOf(expected)
+	act := reflect.ValueOf(actual)
 
-func (a Assert) EqualsRune(expected, actual rune) bool {
-	return a.EqualsInt32(expected, actual)
-}
+	if exp.Len() != act.Len() {
+		msg := fmt.Sprintf("Expected and acutal arrays are of a different length: %d vs. %d", exp.Len(), act.Len())
+		if a.reportErrors {
+			a.t.Error(msg)
+		} else {
+			a.t.Log(msg)
+		}
+		return false
+	}
 
-func (a Assert) EqualsInt(expected, actual int) bool {
-	return a.Equals(expected, actual)
-}
+	// think about this more...should be easier...
+	switch cmp := comparitor.(type) {
+	case func(string, string) bool {
+		expVals := expected.([]string)
+		actVals := actual.([]string)
+		for i, v := range expVals {
+			a.EqualsString(v, actVals[i])
+		}
+	}
+	}
 
-func (a Assert) EqualsInt8(expected, actual int8) bool {
-	return a.Equals(expected, actual)
+	return true
 }
-
-func (a Assert) EqualsInt16(expected, actual int16) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsInt32(expected, actual int32) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsInt64(expected, actual int64) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsUInt(expected, actual uint) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsUInt8(expected, actual uint8) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsUInt16(expected, actual uint16) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsUInt32(expected, actual uint32) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsUInt64(expected, actual uint64) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsFloat32(expected, actual float32) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsFloat64(expected, actual float64) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsBool(expected, actual bool) bool {
-	return a.Equals(expected, actual)
-}
-
-func (a Assert) EqualsString(expected, actual string) bool {
-	return a.Equals(expected, actual)
-}
+*/
