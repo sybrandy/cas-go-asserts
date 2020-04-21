@@ -5,7 +5,7 @@ import (
 )
 
 func TestEquals(t *testing.T) {
-	assert := Assert{t: t, reportErrors: false}
+	assert := Assert{t: t, level: 2}
 
 	testCases := []struct {
 		expected interface{}
@@ -39,7 +39,7 @@ func TestEquals(t *testing.T) {
 }
 
 func TestEqualsStringDiff(t *testing.T) {
-	assert := Assert{t: t, reportErrors: false}
+	assert := Assert{t: t, level: 2}
 
 	testCases := []struct {
 		expected interface{}
@@ -64,7 +64,7 @@ func TestEqualsStringDiff(t *testing.T) {
 
 /*
 func TestEqualsArray(t *testing.T) {
-	assert := Assert{t: t, reportErrors: false}
+	assert := Assert{t: t, level: 2}
 
 	testCases := []struct {
 		expected   interface{}

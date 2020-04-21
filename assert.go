@@ -9,8 +9,8 @@ import (
 )
 
 type Assert struct {
-	t            *testing.T
-	reportErrors bool
+	t     *testing.T
+	level int
 }
 
 func (a Assert) logError(expected, actual interface{}) {
@@ -32,9 +32,9 @@ func (a Assert) logError(expected, actual interface{}) {
 		msg = fmt.Sprintf("Expected: %+v (%s), Actual: %+v (%s)",
 			expected, expectedType, actual, actualType)
 	}
-	if a.reportErrors {
+	if a.level == 0 {
 		a.t.Error(msg)
-	} else {
+	} else if a.level == 1 {
 		a.t.Log(msg)
 	}
 }
@@ -87,9 +87,9 @@ func (a Assert) Equals(expected, actual interface{}) bool {
 	actualType := reflect.TypeOf(actual)
 	if !a.isSupported(expectedType.Kind()) || !a.isSupported(actualType.Kind()) {
 		msg := fmt.Sprintf("Unsupported type in comparison: %s, %s", expectedType.Kind(), actualType.Kind())
-		if a.reportErrors {
+		if a.level == 0 {
 			a.t.Error(msg)
-		} else {
+		} else if a.level == 1 {
 			a.t.Log(msg)
 		}
 		return false
