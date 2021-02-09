@@ -1,4 +1,4 @@
-module asserts
+module cas_go_asserts
 
 go 1.14
 

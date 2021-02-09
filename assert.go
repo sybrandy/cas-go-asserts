@@ -1,4 +1,4 @@
-package assert
+package cas_go_asserts
 
 import (
 	"fmt"
